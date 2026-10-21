@@ -53,7 +53,7 @@ export function ProductWhatsapp({
           href={whatsapp}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded bg-green-600 px-4 py-2 font-medium text-white transition-colors hover:bg-green-700"
+          className="inline-flex items-center gap-2 rounded-full bg-[#25D366] px-5 py-2.5 font-semibold text-white transition-colors hover:bg-[#1EBE5A]"
         >
           <MessageCircle className="h-5 w-5" aria-hidden />
           Entre em contato pelo WhatsApp

@@ -149,6 +149,13 @@ escolheu a "opção C" entre três propostas de redesign — **v5 (atual)**:
   o usuário não gostou do topo com texto + disco (2026-10-12). Abaixo,
   faixa horizontal "Escolha a sua", categorias em linhas grandes, "Mais
   vistos" (automático) e bloco de contato por WhatsApp.
+- **v6 (2026-10-21, estilo Emox do Dribbble, aprovado em protótipo):**
+  cabeçalho com logo maior, busca no meio, botão de WhatsApp à direita e
+  categorias numa fileira; home com carrossel + cartão "Novidades da
+  semana" (só em telas grandes), categorias em círculos (foto do produto
+  mais recente), "Mais vistos", faixa de 2 banners, grade "Novidades"
+  (`#novidades`) e bloco de contato. **Botões de WhatsApp são sempre
+  verdes (`#25D366`, hover `#1EBE5A`) com texto branco** — pedido do dono.
 - **Cards de produto:** título limitado a 2 linhas com altura mínima,
   pra cards lado a lado terem o mesmo tamanho.
 - **Várias cores:** ao escolher "Várias cores" num produto sem cor
