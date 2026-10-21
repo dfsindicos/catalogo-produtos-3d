@@ -150,8 +150,11 @@ escolheu a "opção C" entre três propostas de redesign — **v5 (atual)**:
   faixa horizontal "Escolha a sua", categorias em linhas grandes, "Mais
   vistos" (automático) e bloco de contato por WhatsApp.
 - **v6 (2026-10-21, estilo Emox do Dribbble, aprovado em protótipo):**
-  cabeçalho com logo maior, busca no meio, botão de WhatsApp à direita e
-  categorias numa fileira; home com o carrossel sozinho no topo, na largura
+  cabeçalho com logo maior, botão "Categorias" (abre um painel compacto,
+  com foto e quantidade de peças de cada categoria — foto = capa do produto
+  publicado mais recente, montado em `layout.tsx`), busca no meio e botão de
+  WhatsApp à direita; no celular o menu hambúrguer lista as categorias com
+  foto pequena; home com o carrossel sozinho no topo, na largura
   inteira (o cartão "Novidades da semana" ao lado foi removido a pedido do
   dono, e carrossel mais baixo a pedido do dono: 4/3 no celular, 16/7 no tablet, 16/5 no computador); ordem da parte clara (pedido do dono):
   "Mais vistos" logo depois do carrossel, faixa de 2 banners, grade
