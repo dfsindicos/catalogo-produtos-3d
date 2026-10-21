@@ -68,24 +68,9 @@ export default async function HomePage() {
 
   return (
     <div>
-      {/* Topo escuro: carrossel de destaques + cartão de novidades */}
+      {/* Topo escuro: só o carrossel de destaques */}
       <section className="mx-auto max-w-6xl px-4 pb-14 pt-6 md:pb-20 md:pt-8">
-        <div className="grid gap-4 lg:grid-cols-[2fr_1fr]">
-          <HeroCarousel products={banners} />
-          <a
-            href="#novidades"
-            className="hidden flex-col justify-between rounded-3xl bg-gradient-to-br from-[#f0e8ff] to-[#cdb6ff] p-8 text-ink-950 transition-opacity hover:opacity-95 lg:flex"
-          >
-            <div>
-              <span className="rounded-full bg-ink-950 px-3 py-1 text-xs font-semibold text-white">Novo</span>
-              <h2 className="mt-3 text-3xl font-bold leading-tight">Novidades da semana</h2>
-              <p className="mt-2 text-[#3b2a66]">Os produtos mais recentes do catálogo.</p>
-            </div>
-            <span className="inline-flex w-fit items-center gap-2 rounded-full bg-ink-950 px-5 py-2.5 text-sm font-semibold text-white">
-              Ver novidades <ArrowUpRight className="h-4 w-4" aria-hidden />
-            </span>
-          </a>
-        </div>
+        <HeroCarousel products={banners} />
       </section>
 
       {/* Parte clara: categorias, mais vistos, banners, novidades e contato */}
