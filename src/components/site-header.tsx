@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, Menu, Search, X } from "lucide-react";
+import { Menu, MessageCircle, Search, X } from "lucide-react";
+import { whatsappContactLink } from "@/lib/whatsapp";
 import type { Category } from "@/types/catalog";
 
 function SearchForm({ onSubmitted, className }: { onSubmitted?: () => void; className?: string }) {
@@ -15,73 +16,21 @@ function SearchForm({ onSubmitted, className }: { onSubmitted?: () => void; clas
       onSubmit={() => onSubmitted?.()}
     >
       <div className="relative">
-        <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-400" />
         <input
           type="search"
           name="q"
           placeholder="Buscar produto..."
-          className="w-full rounded-full border border-ink-800 bg-ink-900 py-1.5 pl-8 pr-3 text-sm text-ink-50 placeholder:text-ink-400 focus:outline-none focus:ring-1 focus:ring-brand-300"
+          className="w-full rounded-full border border-ink-800 bg-ink-900 py-2.5 pl-10 pr-4 text-sm text-ink-50 placeholder:text-ink-400 focus:outline-none focus:ring-1 focus:ring-brand-300"
         />
       </div>
     </form>
   );
 }
 
-function CategoriasMenu({ categories }: { categories: Category[] }) {
-  const [aberto, setAberto] = useState(false);
-
-  useEffect(() => {
-    if (!aberto) return;
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") setAberto(false);
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [aberto]);
-
-  if (categories.length === 0) return null;
-
-  return (
-    <div className="relative" onMouseEnter={() => setAberto(true)} onMouseLeave={() => setAberto(false)}>
-      <button
-        type="button"
-        onClick={() => setAberto((open) => !open)}
-        className="flex items-center gap-1 transition-colors hover:text-brand-200"
-        aria-expanded={aberto}
-        aria-controls="categorias-menu-painel"
-      >
-        Categorias
-        <ChevronDown className={`h-4 w-4 transition-transform ${aberto ? "rotate-180" : ""}`} />
-      </button>
-      <AnimatePresence>
-        {aberto && (
-          <motion.div
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.15 }}
-            id="categorias-menu-painel"
-            className="glass-card absolute right-0 top-full mt-2 w-48 overflow-hidden rounded-lg p-1"
-          >
-            {categories.map((category) => (
-              <Link
-                key={category.id}
-                href={`/categoria/${category.slug}`}
-                onClick={() => setAberto(false)}
-                className="block rounded px-3 py-2 text-ink-200 transition-colors hover:bg-ink-800 hover:text-brand-200"
-              >
-                {category.name}
-              </Link>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
 export function SiteHeader({ categories }: { categories: Category[] }) {
   const [menuAberto, setMenuAberto] = useState(false);
+  const whatsapp = whatsappContactLink();
 
   return (
     <motion.header
@@ -90,19 +39,24 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
       transition={{ duration: 0.4, ease: "easeOut" }}
       className="glass-card sticky top-0 z-20 border-x-0 border-t-0"
     >
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
-        <Link href="/" aria-label="CMG3D Studio, página inicial">
-          <Image src="/logo.png" alt="CMG3D Studio" width={69} height={40} priority className="h-10 w-auto" />
+      <div className="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
+        <Link href="/" aria-label="CMG3D Studio, página inicial" className="flex-none">
+          <Image src="/logo.png" alt="CMG3D Studio" width={69} height={40} priority className="h-12 w-auto" />
         </Link>
 
-        {/* Desktop */}
-        <nav className="hidden items-center gap-6 text-sm text-ink-200 md:flex">
-          <Link href="/" className="transition-colors hover:text-brand-200">
-            Catálogo
-          </Link>
-          <CategoriasMenu categories={categories} />
-          <SearchForm className="w-48" />
-        </nav>
+        {/* Desktop: busca no meio e WhatsApp à direita */}
+        <SearchForm className="mx-auto hidden w-full max-w-xl md:block" />
+        {whatsapp && (
+          <a
+            href={whatsapp}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hidden flex-none items-center gap-2 rounded-full bg-[#25D366] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1EBE5A] md:inline-flex"
+          >
+            <MessageCircle className="h-4 w-4" aria-hidden />
+            Chamar no WhatsApp
+          </a>
+        )}
 
         {/* Mobile: botão hambúrguer */}
         <button
@@ -110,11 +64,29 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
           onClick={() => setMenuAberto((open) => !open)}
           aria-label={menuAberto ? "Fechar menu" : "Abrir menu"}
           aria-expanded={menuAberto}
-          className="text-ink-50 md:hidden"
+          className="ml-auto text-ink-50 md:hidden"
         >
           {menuAberto ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
         </button>
       </div>
+
+      {/* Desktop: categorias em uma fileira */}
+      <nav aria-label="Categorias" className="hidden border-t border-ink-800/60 md:block">
+        <div className="mx-auto flex max-w-6xl flex-wrap gap-x-7 gap-y-1 px-4 py-2 text-sm font-medium text-ink-200">
+          <Link href="/" className="py-1 transition-colors hover:text-brand-200">
+            Catálogo
+          </Link>
+          {categories.map((category) => (
+            <Link
+              key={category.id}
+              href={`/categoria/${category.slug}`}
+              className="py-1 transition-colors hover:text-brand-200"
+            >
+              {category.name}
+            </Link>
+          ))}
+        </div>
+      </nav>
 
       {/* Mobile: painel do menu */}
       <AnimatePresence>
@@ -128,6 +100,17 @@ export function SiteHeader({ categories }: { categories: Category[] }) {
           >
             <div className="flex flex-col gap-1 px-4 py-3 text-sm text-ink-200">
               <SearchForm className="mb-2" onSubmitted={() => setMenuAberto(false)} />
+              {whatsapp && (
+                <a
+                  href={whatsapp}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mb-2 inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-5 py-2.5 font-semibold text-white"
+                >
+                  <MessageCircle className="h-4 w-4" aria-hidden />
+                  Chamar no WhatsApp
+                </a>
+              )}
               <Link href="/" onClick={() => setMenuAberto(false)} className="rounded px-2 py-2 hover:bg-ink-800">
                 Catálogo
               </Link>
