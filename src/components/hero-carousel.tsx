@@ -33,7 +33,7 @@ export function HeroCarousel({ products }: { products: Product[] }) {
 
   return (
     <div
-      className="glass-card relative mx-auto aspect-[4/5] max-w-6xl overflow-hidden rounded-3xl sm:aspect-[16/7]"
+      className="glass-card relative mx-auto aspect-[4/3] max-w-6xl overflow-hidden rounded-3xl sm:aspect-[16/7] lg:aspect-[16/5]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocus={() => setPaused(true)}
