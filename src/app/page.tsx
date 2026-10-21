@@ -91,32 +91,6 @@ export default async function HomePage() {
       {/* Parte clara: categorias, mais vistos, banners, novidades e contato */}
       <section id="catalogo" className="rounded-t-[48px] bg-[#f6f2fc] pb-16 pt-12 text-ink-950 md:pt-16">
         <div className="mx-auto max-w-6xl space-y-14 px-4 md:space-y-16">
-          {categoriasComProduto.length > 0 && (
-            <div>
-              <h2 className="mb-5 text-3xl font-bold md:text-4xl">Escolha a sua categoria</h2>
-              <ul className="-mx-4 flex gap-5 overflow-x-auto px-4 pb-2 [scrollbar-width:none]">
-                {categoriasComProduto.map((category) => {
-                  const capa = capaDaCategoria.get(category.id);
-                  return (
-                    <li key={category.id} className="w-28 flex-none">
-                      <Link
-                        href={`/categoria/${category.slug}`}
-                        className="group flex flex-col items-center gap-2.5 text-center text-sm font-medium"
-                      >
-                        <span className="relative block h-24 w-24 overflow-hidden rounded-full border border-[#e4dbf5] bg-white transition-shadow group-hover:shadow-lg group-hover:shadow-brand-700/20 md:h-28 md:w-28">
-                          {capa && (
-                            <Image src={capa} alt="" fill sizes="112px" className="object-cover transition-transform duration-500 group-hover:scale-110" />
-                          )}
-                        </span>
-                        {category.name}
-                      </Link>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          )}
-
           {maisVistos.length > 0 && (
             <div>
               <h2 className="mb-5 text-3xl font-bold md:text-4xl">Mais vistos</h2>
@@ -168,6 +142,32 @@ export default async function HomePage() {
               ))}
             </div>
           </div>
+
+          {categoriasComProduto.length > 0 && (
+            <div>
+              <h2 className="mb-5 text-3xl font-bold md:text-4xl">Escolha a sua categoria</h2>
+              <ul className="-mx-4 flex gap-5 overflow-x-auto px-4 pb-2 [scrollbar-width:none]">
+                {categoriasComProduto.map((category) => {
+                  const capa = capaDaCategoria.get(category.id);
+                  return (
+                    <li key={category.id} className="w-28 flex-none">
+                      <Link
+                        href={`/categoria/${category.slug}`}
+                        className="group flex flex-col items-center gap-2.5 text-center text-sm font-medium"
+                      >
+                        <span className="relative block h-24 w-24 overflow-hidden rounded-full border border-[#e4dbf5] bg-white transition-shadow group-hover:shadow-lg group-hover:shadow-brand-700/20 md:h-28 md:w-28">
+                          {capa && (
+                            <Image src={capa} alt="" fill sizes="112px" className="object-cover transition-transform duration-500 group-hover:scale-110" />
+                          )}
+                        </span>
+                        {category.name}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          )}
 
           {whatsapp && (
             <div className="grid items-center gap-8 rounded-[44px] bg-ink-950 p-8 text-white md:grid-cols-[1.4fr_1fr] md:p-14">

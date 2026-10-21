@@ -152,9 +152,10 @@ escolheu a "opção C" entre três propostas de redesign — **v5 (atual)**:
 - **v6 (2026-10-21, estilo Emox do Dribbble, aprovado em protótipo):**
   cabeçalho com logo maior, busca no meio, botão de WhatsApp à direita e
   categorias numa fileira; home com carrossel + cartão "Novidades da
-  semana" (só em telas grandes), categorias em círculos (foto do produto
-  mais recente), "Mais vistos", faixa de 2 banners, grade "Novidades"
-  (`#novidades`) e bloco de contato. **Botões de WhatsApp são sempre
+  semana" (só em telas grandes); ordem da parte clara (pedido do dono):
+  "Mais vistos" logo depois do carrossel, faixa de 2 banners, grade
+  "Novidades" (`#novidades`), "Escolha a sua categoria" (círculos com a
+  foto do produto mais recente) lá embaixo e, por último, bloco de contato. **Botões de WhatsApp são sempre
   verdes (`#25D366`, hover `#1EBE5A`) com texto branco** — pedido do dono.
 - **Cards de produto:** título limitado a 2 linhas com altura mínima,
   pra cards lado a lado terem o mesmo tamanho.
