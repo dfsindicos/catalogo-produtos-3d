@@ -160,7 +160,7 @@ export default async function HomePage() {
             )}
           </div>
 
-          <div id="novidades" className="scroll-mt-24">
+          <div id="novidades" className="scroll-mt-32">
             <h2 className="mb-5 text-3xl font-bold md:text-4xl">Novidades</h2>
             <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               {novidades.map((product) => (
