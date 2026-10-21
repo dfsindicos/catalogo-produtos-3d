@@ -153,7 +153,7 @@ escolheu a "opção C" entre três propostas de redesign — **v5 (atual)**:
   cabeçalho com logo maior, busca no meio, botão de WhatsApp à direita e
   categorias numa fileira; home com o carrossel sozinho no topo, na largura
   inteira (o cartão "Novidades da semana" ao lado foi removido a pedido do
-  dono, e o tamanho voltou ao original: 4/5 no celular, 16/7 acima); ordem da parte clara (pedido do dono):
+  dono, e carrossel mais baixo a pedido do dono: 4/3 no celular, 16/7 no tablet, 16/5 no computador); ordem da parte clara (pedido do dono):
   "Mais vistos" logo depois do carrossel, faixa de 2 banners, grade
   "Novidades" (`#novidades`), "Escolha a sua categoria" (círculos com a
   foto do produto mais recente) lá embaixo e, por último, bloco de contato. **Botões de WhatsApp são sempre
