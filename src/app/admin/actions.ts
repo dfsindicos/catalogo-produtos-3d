@@ -338,6 +338,36 @@ export async function quickUpdateProduct(id: string, patch: QuickProductPatch): 
   return {};
 }
 
+// Cria um rascunho (não publicado, sem categoria nem foto) a partir de uma
+// peça calculada na aba Gestão > Preços, já com o preço Pix. Recusa nome
+// repetido pra não duplicar produto que já existe no catálogo.
+export async function createDraftProduct(name: string, price: number): Promise<{ id?: string; error?: string }> {
+  const supabase = await requireAdmin();
+  const clean = name.trim();
+  if (!clean || clean.length > 200) return { error: "Nome inválido." };
+  if (!Number.isFinite(price) || price < 0) return { error: "Preço inválido." };
+
+  const { data: igual } = await supabase
+    .from("products")
+    .select("id")
+    .ilike("name", clean.replace(/[\\%_]/g, "\\$&"))
+    .limit(1);
+  if (igual && igual.length > 0) {
+    return { error: "Já existe um produto com esse nome. Escolha-o na lista em vez de criar outro." };
+  }
+
+  const slug = await uniqueSlug(supabase, "products", slugify(clean));
+  const { data, error } = await supabase
+    .from("products")
+    .insert({ name: clean, slug, price: Math.round(price * 100) / 100, published: false })
+    .select("id")
+    .single();
+  if (error || !data) return { error: error?.message ?? "Não foi possível criar o produto." };
+
+  revalidatePath("/admin");
+  return { id: data.id };
+}
+
 const MAKERWORLD_IMAGE_BASE = "https://makerworld.bblmw.com/makerworld/model/";
 
 export type SyncModelResult = {
