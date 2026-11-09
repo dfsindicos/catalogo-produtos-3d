@@ -340,6 +340,32 @@ export async function quickUpdateProduct(id: string, patch: QuickProductPatch): 
 
 const MAKERWORLD_IMAGE_BASE = "https://makerworld.bblmw.com/makerworld/model/";
 
+const MAX_MAKERWORLD_PHOTOS = 5;
+
+// Lê a página pública do modelo no MakerWorld e devolve os caminhos das
+// outras fotos da galeria (mesma pasta de autor e mesmo dia da capa), na
+// ordem em que aparecem. Qualquer falha devolve lista vazia.
+async function fetchExtraPhotoPaths(model: { id: number; slug?: string; photoPath: string }): Promise<string[]> {
+  try {
+    const cover = model.photoPath;
+    const match = cover.match(/^([^/]+)\/design\/(\d{4}-\d{2}-\d{2})_/);
+    if (!match) return [];
+    const [, authorDir, day] = match;
+    const url = `https://makerworld.com/pt/models/${model.id}${model.slug ? `-${model.slug}` : ""}`;
+    const response = await fetch(url, {
+      headers: { "user-agent": "Mozilla/5.0" },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!response.ok) return [];
+    const html = await response.text();
+    const pattern = new RegExp(`${authorDir}/design/${day}_[A-Za-z0-9]+\\.(?:jpg|jpeg|png|webp)`, "g");
+    const found = [...new Set(html.match(pattern) ?? [])];
+    return found.filter((path) => path !== cover).slice(0, MAX_MAKERWORLD_PHOTOS - 1);
+  } catch {
+    return [];
+  }
+}
+
 export type SyncModelResult = {
   status: "criado" | "existe" | "removido" | "mantido" | "nada";
   error?: string;
@@ -355,6 +381,7 @@ export async function syncModelProduct(model: {
   id: number;
   name: string;
   photoPath: string;
+  slug?: string;
 }): Promise<SyncModelResult> {
   const supabase = await requireAdmin();
   const name = model.name.trim();
@@ -408,22 +435,37 @@ export async function syncModelProduct(model: {
     if (!/^[A-Za-z0-9_\-./]+$/.test(model.photoPath) || model.photoPath.includes("..")) {
       throw new Error("caminho de foto inválido");
     }
-    const response = await fetch(
-      `${MAKERWORLD_IMAGE_BASE}${model.photoPath}?x-oss-process=image/resize,w_1200/format,webp`,
-      { headers: { "user-agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(8000) },
-    );
-    if (!response.ok) throw new Error(`MakerWorld respondeu ${response.status}`);
-    const bytes = await response.arrayBuffer();
-    const path = `${product.id}/${Date.now()}-makerworld.webp`;
-    const { error: uploadError } = await supabase.storage
-      .from(STORAGE_BUCKET)
-      .upload(path, bytes, { contentType: "image/webp" });
-    if (uploadError) throw new Error(uploadError.message);
-    const { data: publicUrl } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
-    const { error: imageError } = await supabase
-      .from("product_images")
-      .insert({ product_id: product.id, url: publicUrl.publicUrl, position: 0 });
-    if (imageError) throw new Error(imageError.message);
+    // Capa (sempre) + até 4 fotos extras da galeria do modelo. As extras são
+    // "melhor esforço": se a página do MakerWorld não abrir, fica só a capa.
+    const extras = await fetchExtraPhotoPaths(model);
+    const photoPaths = [model.photoPath, ...extras].slice(0, MAX_MAKERWORLD_PHOTOS);
+
+    let position = 0;
+    for (const photoPath of photoPaths) {
+      const isCover = position === 0;
+      try {
+        const response = await fetch(
+          `${MAKERWORLD_IMAGE_BASE}${photoPath}?x-oss-process=image/resize,w_1200/format,webp`,
+          { headers: { "user-agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(8000) },
+        );
+        if (!response.ok) throw new Error(`MakerWorld respondeu ${response.status}`);
+        const bytes = await response.arrayBuffer();
+        const path = `${product.id}/${Date.now()}-${position}-makerworld.webp`;
+        const { error: uploadError } = await supabase.storage
+          .from(STORAGE_BUCKET)
+          .upload(path, bytes, { contentType: "image/webp" });
+        if (uploadError) throw new Error(uploadError.message);
+        const { data: publicUrl } = supabase.storage.from(STORAGE_BUCKET).getPublicUrl(path);
+        const { error: imageError } = await supabase
+          .from("product_images")
+          .insert({ product_id: product.id, url: publicUrl.publicUrl, position });
+        if (imageError) throw new Error(imageError.message);
+        position += 1;
+      } catch (photoError) {
+        // a capa é obrigatória pro aviso; falha numa foto extra é ignorada
+        if (isCover) throw photoError;
+      }
+    }
   } catch (photoError) {
     aviso = `Rascunho criado sem foto (${photoError instanceof Error ? photoError.message : "erro ao baixar"}). Suba a foto na edição.`;
   }

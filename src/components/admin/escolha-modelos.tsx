@@ -80,7 +80,7 @@ export function EscolhaModelos({ userId }: { userId: string }) {
   const visiveis = filtrados.slice(paginaAtual * POR_PAGINA, (paginaAtual + 1) * POR_PAGINA);
 
   async function sincronizar(m: Modelo) {
-    const r = await syncModelProduct({ id: m[0], name: m[1], photoPath: m[5] });
+    const r = await syncModelProduct({ id: m[0], name: m[1], photoPath: m[5], slug: m[4] });
     if (r.error) setAviso(`Marcação salva, mas o rascunho falhou: ${r.error}`);
     else if (r.status === "criado") setAviso(r.aviso ? `Rascunho criado sem foto (${r.aviso})` : "Rascunho criado em Produtos");
     else if (r.status === "mantido") setAviso("Esse produto já foi editado, então continua na lista de Produtos");
@@ -97,7 +97,7 @@ export function EscolhaModelos({ userId }: { userId: string }) {
     let falhas = 0;
     for (const m of dados.d) {
       if (!ids.has(m[0])) continue;
-      const r = await syncModelProduct({ id: m[0], name: m[1], photoPath: m[5] });
+      const r = await syncModelProduct({ id: m[0], name: m[1], photoPath: m[5], slug: m[4] });
       if (r.error) falhas++;
       else if (r.status === "criado") criados++;
     }
