@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { quickUpdateProduct } from "@/app/admin/actions";
+import { createDraftProduct, quickUpdateProduct } from "@/app/admin/actions";
 import { R, calc, emptyCalc, num, type CalcInput, type Order, type Piece } from "@/lib/gestao";
-import { Campo, btn, btnGhost, btnPerigo, campo, cartao, type Ctx } from "./ui";
+import { Campo, btn, btnGhost, btnPerigo, campo, cartao, rotulo, type Ctx } from "./ui";
 
 // A calculadora digita em texto (pra aceitar "2," no meio da digitação)
 // e só converte pra número na hora de calcular.
@@ -49,6 +49,76 @@ function paraInput(e: Entrada): CalcInput {
   };
 }
 
+// Liga uma peça salva a um produto do catálogo e leva o preço Pix pra ele,
+// direto do cartão da lista (sem abrir a calculadora). Sem produto ligado,
+// também dá pra criar um rascunho novo a partir da peça.
+function LigacaoPeca({ p, ctx }: { p: Piece; ctx: Ctx }) {
+  const [sel, setSel] = useState(p.product_id ?? "");
+  const produto = ctx.products.find((x) => x.id === sel);
+
+  async function ligar(id: string) {
+    if (p.product_id === id) return null;
+    const { error } = await ctx.supabase.from("gestao_pieces").update({ product_id: id }).eq("id", p.id);
+    return error;
+  }
+
+  async function usar() {
+    if (!sel) return;
+    const res = await quickUpdateProduct(sel, { price: String(p.pix) });
+    if (res.error) return ctx.toast(res.error);
+    const erroLigacao = await ligar(sel);
+    await ctx.reload();
+    if (erroLigacao) return ctx.toast(`Preço enviado, mas não guardei a ligação (${erroLigacao.message})`);
+    ctx.toast(`Preço do site agora é ${R(p.pix)}`);
+  }
+
+  async function criar() {
+    const res = await createDraftProduct(p.nome, p.pix);
+    if (res.error || !res.id) return ctx.toast(res.error ?? "Não foi possível criar o produto.");
+    setSel(res.id);
+    const erroLigacao = await ligar(res.id);
+    await ctx.reload();
+    if (erroLigacao) return ctx.toast(`Rascunho criado, mas não guardei a ligação (${erroLigacao.message})`);
+    ctx.toast(`Rascunho criado em Produtos com o preço ${R(p.pix)}`);
+  }
+
+  return (
+    <div className="mt-3 border-t border-ink-800 pt-3 text-sm">
+      <label htmlFor={`peca-prod-${p.id}`} className={rotulo}>
+        Produto do site
+      </label>
+      <select id={`peca-prod-${p.id}`} className={campo} value={sel} onChange={(ev) => setSel(ev.target.value)}>
+        <option value="">Sem ligação</option>
+        {ctx.products.map((x) => (
+          <option key={x.id} value={x.id}>
+            {x.name}
+            {x.published ? "" : " (rascunho)"}
+          </option>
+        ))}
+      </select>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+        {produto ? (
+          <>
+            <span className="text-ink-200">
+              Preço no site hoje: <b className="font-mono">{produto.price != null ? R(produto.price) : "sem preço"}</b>
+            </span>
+            <button className={`${btnGhost} !px-3 !py-1.5`} onClick={usar}>
+              Usar {R(p.pix)} no site
+            </button>
+          </>
+        ) : (
+          <>
+            <span className="text-ink-400">Nenhum produto escolhido.</span>
+            <button className={`${btnGhost} !px-3 !py-1.5`} onClick={criar}>
+              Criar produto no site com {R(p.pix)}
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function PrecosTab({ ctx, novoPedido }: { ctx: Ctx; novoPedido: (r: Partial<Order>) => void }) {
   const [e, setE] = useState<Entrada>(() => deInput(emptyCalc(ctx.cfg), ""));
   const set = (k: Exclude<keyof Entrada, "lines">, v: string) => setE((a) => ({ ...a, [k]: v }));
@@ -60,7 +130,7 @@ export function PrecosTab({ ctx, novoPedido }: { ctx: Ctx; novoPedido: (r: Parti
   const c = ctx.cfg;
   const produto = ctx.products.find((p) => p.id === e.product_id);
 
-  async function salvar() {
+  async function salvar(productId: string = e.product_id) {
     if (!e.nome.trim()) return ctx.toast("Dê um nome à peça");
     const dados = {
       nome: e.nome.trim(),
@@ -69,7 +139,7 @@ export function PrecosTab({ ctx, novoPedido }: { ctx: Ctx; novoPedido: (r: Parti
       cred: r.cred,
       custo: Math.round(r.custo * 100) / 100,
       inp,
-      product_id: e.product_id || null,
+      product_id: productId || null,
     };
     const existente = ctx.pcs.find((p) => p.nome === dados.nome);
     const { error } = existente
@@ -87,6 +157,17 @@ export function PrecosTab({ ctx, novoPedido }: { ctx: Ctx; novoPedido: (r: Parti
     if (res.error) return ctx.toast(res.error);
     await ctx.reload();
     ctx.toast(`Preço do site agora é ${R(r.pix)}`);
+  }
+
+  // Cria um rascunho no catálogo com o nome e o preço Pix desta peça e já
+  // guarda a peça ligada a ele.
+  async function criarNoSite() {
+    if (!e.nome.trim()) return ctx.toast("Dê um nome à peça");
+    const res = await createDraftProduct(e.nome.trim(), r.pix);
+    if (res.error || !res.id) return ctx.toast(res.error ?? "Não foi possível criar o produto.");
+    set("product_id", res.id);
+    await salvar(res.id);
+    ctx.toast(`Rascunho criado em Produtos com o preço ${R(r.pix)}`);
   }
 
   function abrir(p: Piece) {
@@ -227,6 +308,14 @@ export function PrecosTab({ ctx, novoPedido }: { ctx: Ctx; novoPedido: (r: Parti
         <div className="text-xs text-ink-400">
           Preço mínimo, sem lucro: Pix {R(r.mpix)} · Débito {R(r.mdeb)} · Crédito {R(r.mcred)}. Abaixo disso você paga para vender.
         </div>
+        {!produto && e.nome.trim() && (
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-ink-800 pt-3 text-sm">
+            <span className="text-ink-200">Esta peça ainda não está ligada a um produto do site.</span>
+            <button className={`${btnGhost} !px-3 !py-1.5`} onClick={criarNoSite}>
+              Criar produto no site com {R(r.pix)}
+            </button>
+          </div>
+        )}
         {produto && (
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 border-t border-ink-800 pt-3 text-sm">
             <span className="text-ink-200">
@@ -240,7 +329,7 @@ export function PrecosTab({ ctx, novoPedido }: { ctx: Ctx; novoPedido: (r: Parti
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <button className={btn} onClick={salvar}>
+        <button className={btn} onClick={() => salvar()}>
           Salvar peça
         </button>
         <button
@@ -270,6 +359,7 @@ export function PrecosTab({ ctx, novoPedido }: { ctx: Ctx; novoPedido: (r: Parti
             <div className="text-sm text-ink-400">
               Custo {R(p.custo)} · Débito {R(p.deb)} · Crédito {R(p.cred)}
             </div>
+            <LigacaoPeca key={`${p.id}-${p.product_id ?? ""}`} p={p} ctx={ctx} />
             <div className="mt-2 flex flex-wrap gap-2">
               <button className={`${btnGhost} !px-3 !py-1.5`} onClick={() => abrir(p)}>
                 Abrir na calculadora
