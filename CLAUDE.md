@@ -41,10 +41,13 @@ Entra:
   encomenda". Marcações por usuário na tabela `model_picks`
   (`supabase/migration-escolha-modelos.sql`, já rodada em produção).
   Clicar "Quero" cria sozinho um **rascunho** de produto (`published =
-  false`, invisível no site público) com o nome e a foto do MakerWorld
-  copiada pro storage (`syncModelProduct` em `src/app/admin/actions.ts`;
-  `products.makerworld_id` evita duplicar). Descrição fica em branco —
-  não há raspagem do MakerWorld. O dono completa categoria/cores/preço e
+  false`, invisível no site público) com o nome e as fotos do MakerWorld
+  copiadas pro storage (`syncModelProduct` em `src/app/admin/actions.ts`;
+  `products.makerworld_id` evita duplicar). A capa vem da lista estática;
+  as fotos extras (até 5 no total, 2026-11-08) são lidas da página pública
+  do modelo em `fetchExtraPhotoPaths`, em melhor esforço — se o MakerWorld
+  não responder ao servidor, fica só a capa. Descrição fica em branco —
+  não há raspagem de texto do MakerWorld. O dono completa categoria/cores/preço e
   marca "Publicado" na lista de produtos. Tirar o Quero apaga o
   rascunho só se ele não foi editado. Schema em
   `supabase/migration-rascunhos-makerworld.sql` (rodar ANTES do deploy:
